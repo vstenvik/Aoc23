@@ -46,7 +46,26 @@ let solvePart1 input =
 test <@ solvePart1 example = 5 @>
 solvePart1 example
 
+let solvePart2 input =
+    let endsLoop loopStart current =
+        match loopStart with
+        | Some value -> value = current
+        | None -> false
+    let rec inner loopStart countRedists prevLists currentList =
+        let index, value, state = getRedistBank currentList
+        let newCurrentList = redistribute (index + 1) value state
+        if endsLoop loopStart newCurrentList then
+            countRedists
+        else if Option.isNone loopStart && Set.contains newCurrentList prevLists then
+            let newPrevLists = (Set.add newCurrentList prevLists)
+            inner (Some newCurrentList) 1 newPrevLists newCurrentList
+        else
+            let newCountRedists = (countRedists + 1)
+            let newPrevLists = (Set.add newCurrentList prevLists)
+            inner loopStart newCountRedists newPrevLists newCurrentList
+    inner None 1 Set.empty input
 let options = StringSplitOptions.TrimEntries ||| StringSplitOptions.RemoveEmptyEntries
 let input = "4 1 15 12 0 9 9 5 5 8 7 3 14 5 12 3".Split(" ", options)
             |> Seq.map int |> List.ofSeq
 solvePart1 input
+solvePart2 input
