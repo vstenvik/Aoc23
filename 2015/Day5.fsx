@@ -1,6 +1,6 @@
-#r "nuget: Unquote"
 open System
 open System.IO
+#r "nuget: Unquote"
 open Swensen.Unquote
 
 let isOutside i arr =
