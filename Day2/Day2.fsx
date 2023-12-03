@@ -14,6 +14,12 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green""".Split("\n") |> List.of
 
 type GameSets = (string * int) seq
 type Game = int * GameSets
+let pattern = Regex(@"Game (\d+):(?: (\d+ [a-zA-Z]+)(?:[,:] (\d+ [a-zA-Z]+))*)*")
+(pattern.Match example[0]).Groups
+|> Seq.skip 1
+|> Seq.map _.Value.Trim()
+|> Seq.filter (fun v -> not (String.IsNullOrEmpty v))
+|> Seq.toList
 let parseRow (str: string): Game =
     let gameId = str.Split(":")[0] |> Seq.skip 5 |> Array.ofSeq |> String |> int
     let onlySets = str.Split(":", StringSplitOptions.TrimEntries)[1]
