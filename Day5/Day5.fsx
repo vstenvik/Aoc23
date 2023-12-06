@@ -42,26 +42,19 @@ humidity-to-location map:
 
 
 type State = {
-    seeds : int64 array
+    //seeds : uint64 array
     maps : SeedMap list
 }
 and SeedMap = {
     name : string
     mappings : Mapping list
 }
-and Mapping = (int64*int64*int64)
-
-let parseSeeds (str : string) =
-    str
-    |> Seq.skip "seeds: ".Length
-    |> Seq.toArray |> String
-    |> _.Split(" ")
-    |> Array.map int64
+and Mapping = (uint64*uint64*uint64)
 
 let parseMap (str : string) =
     let split = str.Split("\n")
     let name = Array.head split |> _.Split(" ") |> Array.head
-    let parseNums (str:string) = str.Split(" ", StringSplitOptions.TrimEntries) |> Array.map int64
+    let parseNums (str:string) = str.Split(" ", StringSplitOptions.TrimEntries) |> Array.map uint64
     let nums = Array.tail split
                |> Array.map parseNums
     let mappings = [ for num in nums do
@@ -81,22 +74,31 @@ let parse (str : string) =
     let split = str.Split("\n\n")
     let seeds = Array.head split
     let rest = Array.tail split |> List.ofArray
+    //printf "Parsing seeds"
+    //let seeds = parseSeeds seeds
+    //printf "done"
+    printf "parsing maps"
+    let seedMaps = rest |> List.map parseMap
+    printf "done"
     {
-        seeds = parseSeeds seeds
-        maps = rest |> List.map parseMap
+        //seeds = seeds
+        maps = seedMaps
     }
 
 let isInRange num ((s,d,l): Mapping)=
     num >= s && num < s + l
+    
 let getMappingValue num ((s,d,l) : Mapping)=
     let offset = num - s
     d + offset
+    
 let getMapping (mappings : Mapping list) num =
     match List.tryFind (isInRange num) mappings with
     | Some v -> v
-    | None -> (num, num, 1)
-let getLocation (seed : int64) (seedMaps : SeedMap list) =
-    let rec inner (iSeedMaps : SeedMap list) (prev : int64) =
+    | None -> (num, num, 1UL)
+    
+let getLocation (seed : uint64) (seedMaps : SeedMap list) =
+    let rec inner (iSeedMaps : SeedMap list) (prev : uint64) =
         match iSeedMaps with
         | [] -> prev
         | [v] -> getMapping v.mappings prev |> getMappingValue prev
@@ -107,8 +109,23 @@ let getLocation (seed : int64) (seedMaps : SeedMap list) =
 
 let input = File.ReadAllText "./Day5/input.txt"
 let state = parse input
+let seeds = input.Split("\n", StringSplitOptions.TrimEntries)[0]
 
-[ for seed in state.seeds do
-      printf "%A" seed
-      getLocation seed state.maps ]
-|> List.min
+let parseSeeds (state: State) (str : string) =
+    str
+    |> Seq.skip "seeds: ".Length
+    |> Seq.toArray |> String
+    |> _.Split(" ")
+    |> Array.map uint64
+    |> Array.chunkBySize 2
+    |> Array.map (fun v ->
+                        let start = Array.head v
+                        let stop = start + Array.last v - 1UL
+                        printfn "Seed: %A"  start
+                        let locations = [|for i = start to stop do
+                                          let location = getLocation i state.maps
+                                          location |]
+                        Array.min locations)
+    |> Array.min
+
+parseSeeds state seeds
