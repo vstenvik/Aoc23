@@ -73,7 +73,7 @@ let getGrid (str: string) =
     |> Array.map Array.ofSeq
 let getRows (str: string) =
     str.Split("\n")
-let solve1 input =
+let solve input =
     let grid = getGrid input
     let rows = input |> getRows |> Array.indexed
 
@@ -85,4 +85,4 @@ let solve1 input =
     |> Seq.sum
 
 let input = File.ReadAllText "./Day3/input.txt"
-solve1 input
+solve input
