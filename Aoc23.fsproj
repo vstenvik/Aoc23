@@ -8,16 +8,6 @@
 
   <ItemGroup>
     <Compile Include="Program.fs" />
-    <None Include="2015\Day1.fsx" />
-    <None Include="2015\Day2.fsx" />
-    <Content Include="2015\Day2.txt" />
-    <None Include="2015\Day3.fsx" />
-    <None Include="2015\Day4.fsx" />
-    <Content Include="2015\Day4.txt" />
-    <None Include="2015\Day5.fsx" />
-    <Content Include="2015\Day5.txt" />
-    <None Include="2015\Day6.fsx" />
-    <None Include="2015\Day7.fsx" />
     <None Include="Day1\Day1.fsx" />
     <Content Include="Day1\input.txt" />
     <None Include="Day2\Day2.fsx" />
@@ -29,6 +19,11 @@
     <None Include="Day5\Day5.fsx" />
     <Content Include="Day5\input.txt" />
     <None Include="Day6\Day6.fsx" />
+    <None Include="Day7\Day7.fsx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="2015\**" />
   </ItemGroup>
 
 </Project>
