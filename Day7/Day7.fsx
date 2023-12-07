@@ -1,13 +1,5 @@
 open System
-open System
 open System.IO
-open System.Text.RegularExpressions
-
-#r "nuget: FsToolkit.ErrorHandling, 4.11.1"
-#r "nuget: Unquote"
-open Swensen.Unquote
-open FsToolkit.ErrorHandling
-
 
 type Card =
     | A
@@ -39,6 +31,7 @@ let upgrade (hand : Hand): Hand =
     [ for card in hand do
           if card = J then
              let withoutJ = hand |> Seq.filter ((<>) J)
+             // Try to see if there is some way to replace J with anything else
              if Seq.length withoutJ > 0 then
                 withoutJ |> Seq.countBy id |> Seq.maxBy snd |> fst
              else
@@ -63,28 +56,8 @@ let getHandType (hand : Hand) =
     | [1; 1; 1; 1; 1] -> HighCard hand
     | _ -> failwithf "Impossible hand %A" hand
     
-let getType hand =
-    match getHandType hand with
-    | FiveOfAKind h -> "five of a kind"
-    | FourOfAKind h -> "four of a kind"
-    | FullHouse h -> "full house"
-    | ThreeOfAKind h -> "three of a kind"
-    | TwoPair h -> "two pair"
-    | OnePair h -> "one pair"
-    | HighCard h -> "high card"
-    
 let getNumericPart hand =
     hand |> List.mapi (fun i v -> (i * 15) + (getNumericValue v)) |> List.sum
-let getScore hand =
-    match getHandType hand with
-    | FiveOfAKind h -> (getNumericValue(h[0]) * (pown 10 8)) + (getNumericPart h)
-    | FourOfAKind h -> (pown 10 8) + (getNumericPart h)
-    | FullHouse h -> (pown 10 8) + (getNumericPart h)
-    | ThreeOfAKind h -> (pown 10 8) + (getNumericPart h)
-    | TwoPair h -> (pown 10 8) + (getNumericPart h)
-    | OnePair h -> (pown 10 8) + (getNumericPart h)
-    | HighCard h -> getNumericPart h
-
 
 let getTypeScore = function
     | FiveOfAKind _ -> 100
@@ -106,38 +79,6 @@ let compareHands (handA : Hand * int) (handB : Hand * int) =
 let sort (hands : (Hand * int) list ) =
     hands
     |> List.sortWith (compareHands)
-
-
-test <@ getType [A;A;A;A;A] = "five of a kind" @>
-test <@ getType [K;A;A;A;A] = "four of a kind" @>
-test <@ getType [A;A;A;K;K] = "full house" @>
-test <@ getType [K;Q;A;A;A] = "three of a kind" @>
-test <@ getType [A;A;T;K;K] = "two pair" @>
-test <@ getType [A;A;T;K;Q] = "one pair" @>
-test <@ getType [A;NumericCard 2;T;K;Q] = "high card" @>
-
-let test1 = [
-    [A;A;A;A;A]
-    [K;A;A;A;A]
-    [A;A;A;K;K]
-    [NumericCard 3;Q;A;A;A]
-    [NumericCard 2;Q;A;A;A]
-    [A;A;T;K;K]
-    [A;A;T;K;Q]
-]
-let test2 = [
-    [5;4;2;3;1] |> List.map NumericCard
-    [4;5;3;2;1] |> List.map NumericCard
-    [5;4;3;2;1] |> List.map NumericCard
-]
-let test2sorted = [
-    [5;4;3;2;1] |> List.map NumericCard
-    [5;4;2;3;1] |> List.map NumericCard
-    [4;5;3;2;1] |> List.map NumericCard
-]
-//test <@ test1 |> sort = test1 @>
-//test <@ test2 |> sort = test2sorted @>
-
 
 let example = """32T3K 765
 T55J5 684
