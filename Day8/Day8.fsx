@@ -19,11 +19,22 @@ AAA = (BBB, BBB)
 BBB = (AAA, ZZZ)
 ZZZ = (ZZZ, ZZZ)"""
 
+let example3 = """LR
+
+11A = (11B, XXX)
+11B = (XXX, 11Z)
+11Z = (11B, XXX)
+22A = (22B, XXX)
+22B = (22C, 22C)
+22C = (22Z, 22Z)
+22Z = (22B, 22B)
+XXX = (XXX, XXX)"""
+
+
 type Parsed = {
     rl: char list
     mappings: Map<string, Mapping>
-    start: string
-    stop: string
+    start: string list
 }
 and Mapping = string * (string * string)
 
@@ -40,28 +51,46 @@ let parse (str:string) =
     {
         rl = rl |> List.ofSeq
         mappings = mappings |> Map.ofList
-        start = "AAA"
-        stop = "ZZZ"
+        start = mappings |> List.map fst |> List.filter _.EndsWith("A")
     }
-
+    
 let solve (input : Parsed) =
     let rec inner (mapping : Mapping) (instructions:char list) (step:UInt64) =
-        if fst mapping = input.stop then
+        if mapping |> (fst >> _.EndsWith("Z")) then
             step
         else
             match instructions with
+            // List is not empty, deconstruct to first element and rest
             | current::rest ->
-               let next = match current with
-                           | 'R' -> mapping |> snd |> snd
-                           | 'L' -> mapping |> snd |> fst
-                           | _ -> failwithf "Invalid direction %A" current
-               inner input.mappings[next] rest (step + 1UL)
+               // get a function that takes the first or second (left/right) mapping
+               let leftOrRight = match current with
+                                 | 'R' -> snd >> snd
+                                 | 'L' -> snd >> fst
+               // Apply the leftOrRight-function to the current mapping, and use the result to get the next mapping
+               let nextMapping = input.mappings[leftOrRight mapping]
+               // Recurse with next mapping and rest of instructions, increasing the step count
+               inner nextMapping rest (step + 1UL)
+            // List is empty, rerun the same mapping with a fresh copy of the instruction list
             | [] -> inner mapping input.rl step
-    inner input.mappings[input.start] input.rl 0UL
+            
+    input.start
+    // Get initial mappings
+    |> List.map (fun s -> input.mappings[s])
+    // Find lowest number of steps for each start-mapping
+    |> List.map (fun start -> inner input.mappings[fst start] input.rl 0UL) 
     
-parse example |> solve
-parse example2 |> solve
 
+let rec gcd (a : 'a) b =
+    let nil = Unchecked.defaultof<'a> // 0, 0UL depending on type
+    if a % b = nil then
+        b
+    else
+        gcd b (a % b)
+
+let lcm a b =
+    a / (gcd a b) * b
+    
 File.ReadAllText "./Day8/input.txt"
 |> parse
 |> solve
+|> List.reduce lcm
