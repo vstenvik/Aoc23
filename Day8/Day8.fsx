@@ -80,12 +80,9 @@ let solve (input : Parsed) =
     |> List.map (fun start -> inner input.mappings[fst start] input.rl 0UL) 
     
 
-let rec gcd (a : 'a) b =
-    let nil = Unchecked.defaultof<'a> // 0, 0UL depending on type
-    if a % b = nil then
-        b
-    else
-        gcd b (a % b)
+let rec gcd a b =
+    if a % b = 0UL then b
+    else gcd b (a % b)
 
 let lcm a b =
     a / (gcd a b) * b
