@@ -3,7 +3,6 @@ open System
 open System.IO
 let splitopts = StringSplitOptions.TrimEntries ||| StringSplitOptions.RemoveEmptyEntries
 
-
 let example = """0 3 6 9 12 15
 1 3 6 10 15 21
 10 13 16 21 30 45"""
@@ -18,41 +17,34 @@ let diff (a:int,b:int) =
     if b < a then diff * -1
     else diff
     
-let diffB (a, b) = diff (b, a)
-    
 let diffList list =
     list
     |> List.pairwise
     |> List.map diff
-    
-let diffListB list =
-    list
-    |> List.pairwise
-    |> List.map diff
 
-let expandListForward (list : int list) =
-    let rec findNext l =
+let extrapolateNextValue (list : int list) =
+    let rec findNext acc l =
         if l |> List.forall ((=) 0) then
-            0
+            acc
         else
             let lastNumber = List.last l
             let diffedList = diffList l
-            lastNumber + (findNext diffedList)
-    findNext list
-    
-let expandListBackward (list : int list) =
-    let rec findNext l =
-        if l |> List.forall ((=) 0) then
-            0
-        else
-            let lastNumber = List.head l
-            let diffedList = diffListB l
-            lastNumber - (findNext diffedList)
-    findNext list
+            (findNext (acc + lastNumber) diffedList)
+    findNext 0 list
 
 let input = File.ReadAllText("./Day9/input.txt")
-
+let solve str =
+    str
+    |> List.map extrapolateNextValue
+    |> List.sum
+    
+// Part 1
 input
 |> parse
-|> List.map expandListBackward
-|> List.sum
+|> solve
+
+ // Part 2
+input
+|> parse
+|> List.map List.rev
+|> solve
