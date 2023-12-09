@@ -66,6 +66,7 @@ let solve (input : Parsed) =
                let leftOrRight = match current with
                                  | 'R' -> snd >> snd
                                  | 'L' -> snd >> fst
+                                 | _ -> failwithf $"Invalid step %c{current}"
                // Apply the leftOrRight-function to the current mapping, and use the result to get the next mapping
                let nextMapping = input.mappings[leftOrRight mapping]
                // Recurse with next mapping and rest of instructions, increasing the step count
